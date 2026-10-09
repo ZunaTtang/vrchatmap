@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #111112; --black: #1A1A1D; --panel: #222226; --white: #EDEAE4; --gray: #8a8580; --gold: #C9A24B; --pink: #F4C6CF; --red: #ff8a8a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--white); font-family: "Noto Sans KR", sans-serif; }
+  header { display: flex; align-items: center; gap: 14px; padding: 18px 16px; border-bottom: 2px dashed rgba(201,162,75,.6); background: var(--black); }
+  header img { width: 52px; height: 52px; border-radius: 12px; }
+  header h1 { margin: 0; font-size: 20px; color: var(--gold); letter-spacing: .04em; }
+  header p { margin: 2px 0 0; font-size: 13px; color: var(--gray); }
+  main { max-width: 960px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+  section { background: var(--panel); border-radius: 14px; padding: 16px; border-left: 4px solid var(--gold); }
+  h2 { margin: 0 0 4px; font-size: 16px; color: var(--pink); }
+  .hint { margin: 0 0 12px; font-size: 13px; color: var(--gray); line-height: 1.5; }
+  label { display: block; font-size: 13px; color: var(--gray); margin: 10px 0 4px; }
+  input, textarea, select { width: 100%; background: var(--ink); color: var(--white); border: 1px solid #3a3a40; border-radius: 8px; padding: 9px 10px; font: inherit; font-size: 14px; }
+  textarea { min-height: 90px; resize: vertical; }
+  button { background: var(--gold); color: var(--ink); border: 0; border-radius: 8px; padding: 9px 16px; font: inherit; font-weight: 700; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--pink); border: 1px solid var(--pink); }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .sched { display: grid; grid-template-columns: 70px 100px 1fr 40px; gap: 6px; margin-bottom: 6px; }
+  .sched button { padding: 6px; background: transparent; color: var(--red); border: 1px solid #553; }
+  .walls { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .wall { background: var(--ink); border-radius: 10px; padding: 8px; }
+  .wall img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 6px; display: block; background: #000; }
+  .wall b { display: block; margin: 6px 0 2px; color: var(--gold); font-size: 13px; }
+  .wall small { color: var(--gray); font-size: 11px; display: block; margin-bottom: 6px; }
+  .wall input[type=file] { font-size: 11px; padding: 4px; }
+  #status { position: sticky; bottom: 0; padding: 10px 16px; background: var(--black); border-top: 1px solid #333; font-size: 14px; min-height: 40px; }
+  #status.err { color: var(--red); } #status.ok { color: #9be39b; }
+  a { color: var(--pink); }
+</style>
+</head>
+<body>
+<header>
+  <img src="../brand/profile_800.png" alt="">
+  <div>
+    <h1>STUDIO ADMIN</h1>
+    <p>VRChat 스튜디오 월드 설정 · 저장하면 월드에 5분 이내(재입장 시 즉시) 반영</p>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2>1. GitHub 연결</h2>
+    <p class="hint">
+      이 페이지는 GitHub 저장소 <b>ZunaTtang/vrchatmap</b> 의 파일을 직접 수정합니다.
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Fine-grained 토큰</a>을 만들 때
+      Repository access → <b>vrchatmap 만</b>, Permissions → <b>Contents: Read and write</b> 로 설정하세요.
+      토큰은 이 브라우저(localStorage)에만 저장되고 다른 곳으로 보내지지 않습니다. 공용 PC에서는 사용 후 "토큰 지우기"를 누르세요.
+    </p>
+    <label for="token">Personal access token</label>
+    <input id="token" type="password" autocomplete="off" placeholder="github_pat_...">
+    <div class="row" style="margin-top:10px">
+      <button id="connect">연결 & 불러오기</button>
+      <button class="ghost" id="forget">토큰 지우기</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. 공지</h2>
+    <p class="hint">스폰 뒤쪽 벽의 NOTICE 보드에 표시됩니다. 줄바꿈 가능.</p>
+    <textarea id="notice"></textarea>
+  </section>
+
+  <section>
+    <h2>3. 방송 일정</h2>
+    <p class="hint">SCHEDULE 보드에 위에서부터 순서대로 표시됩니다 (최대 8줄 권장).</p>
+    <div id="schedule"></div>
+    <button class="ghost" id="addRow">+ 일정 추가</button>
+  </section>
+
+  <section>
+    <h2>4. 방송 없을 때 TV</h2>
+    <p class="hint">OBS World Feed가 꺼져 있을 때 메인 스크린에서 재생할 채널. 채널 목록은 월드에 고정되어 있어요
+      (바꾸려면 Unity <code>StudioBuilder.Props.cs</code>의 <code>TvChannelUrls</code> 수정 후 재업로드).
+      콘솔에서 인스턴스 주인이 직접 YouTube 주소를 붙여넣을 수도 있습니다.</p>
+    <select id="tv">
+      <option value="0">0 · MadoromeZuna 라이브 (방송 중이 아니면 다음 채널로 넘어감)</option>
+      <option value="1">1 · MadoromeZuna 최근 영상</option>
+    </select>
+  </section>
+
+  <div class="row"><button id="save" disabled>공지 · 일정 · TV 저장</button></div>
+
+  <section>
+    <h2>5. 벽 이미지</h2>
+    <p class="hint">이미지를 고르면 2:3 비율(1024×1536 PNG)로 자동 크롭되어 바로 업로드됩니다. 월드에서는 콘솔의 분홍 ART 버튼 또는 재입장 시 반영
+      (GitHub Pages 반영까지 1~5분).</p>
+    <div class="walls" id="walls"></div>
+  </section>
+</main>
+<div id="status">토큰을 입력하고 연결하세요.</div>
+
+<script>
+const REPO = "ZunaTtang/vrchatmap", BRANCH = "main", CONFIG = "config/studio.json";
+const PAGES = "https://zunattang.github.io/vrchatmap/";
+const SLOTS = [
+  ["e1", "동쪽 벽 · 무대 쪽"], ["e2", "동쪽 벽 · 메인"], ["e3", "동쪽 벽 · 입구 쪽"],
+  ["w1", "서쪽 벽 · 채팅 보드 옆"], ["w2", "서쪽 벽 · 침대 위"],
+];
+const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
+const $ = id => document.getElementById(id);
+let configSha = null;
+
+function status(msg, kind = "") { const s = $("status"); s.textContent = msg; s.className = kind; }
+function token() { return $("token").value.trim(); }
+
+async function gh(path, opts = {}) {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+    ...opts,
+    headers: { "Authorization": `Bearer ${token()}`, "Accept": "application/vnd.github+json", ...(opts.headers || {}) },
+  });
+  if (!res.ok) throw new Error(`${res.status} ${(await res.json().catch(() => ({}))).message || res.statusText}`);
+  return res.json();
+}
+const b64encodeText = text => btoa(String.fromCharCode(...new TextEncoder().encode(text)));
+const b64decodeText = b64 => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, "")), c => c.charCodeAt(0)));
+
+async function sha(path) { try { return (await gh(`${path}?ref=${BRANCH}`)).sha; } catch { return null; } }
+async function put(path, base64, message) {
+  const body = { message, content: base64, branch: BRANCH };
+  const existing = await sha(path);
+  if (existing) body.sha = existing;
+  return gh(path, { method: "PUT", body: JSON.stringify(body) });
+}
+
+// ---- schedule rows ----
+function addRow(row = { day: "월", time: "21:00", title: "" }) {
+  const div = document.createElement("div");
+  div.className = "sched";
+  div.innerHTML = `<select>${DAYS.map(d => `<option${d === row.day ? " selected" : ""}>${d}</option>`).join("")}</select>
+    <input type="time" value="${row.time || ""}"><input placeholder="방송 제목" value=""><button title="삭제">✕</button>`;
+  div.children[2].value = row.title || "";
+  div.querySelector("button").onclick = () => div.remove();
+  $("schedule").appendChild(div);
+}
+function readRows() {
+  return [...$("schedule").children].map(r => ({ day: r.children[0].value, time: r.children[1].value, title: r.children[2].value.trim() }))
+    .filter(r => r.title || r.time);
+}
+
+// ---- load / save config ----
+async function load() {
+  if (!token()) return status("토큰을 입력하세요.", "err");
+  localStorage.setItem("studioAdminToken", token());
+  status("불러오는 중…");
+  try {
+    const file = await gh(`${CONFIG}?ref=${BRANCH}`);
+    configSha = file.sha;
+    const cfg = JSON.parse(b64decodeText(file.content));
+    $("notice").value = cfg.notice || "";
+    $("schedule").innerHTML = "";
+    (cfg.schedule || []).forEach(addRow);
+    $("tv").value = String(cfg.tv ?? 0);
+    $("save").disabled = false;
+    status("불러왔습니다. 수정 후 저장하세요.", "ok");
+  } catch (e) { status("불러오기 실패: " + e.message, "err"); }
+}
+
+async function save() {
+  const cfg = { notice: $("notice").value, schedule: readRows(), tv: Number($("tv").value) };
+  $("save").disabled = true;
+  status("저장 중…");
+  try {
+    await put(CONFIG, b64encodeText(JSON.stringify(cfg, null, 2) + "\n"), "Update studio config from admin page");
+    status("저장 완료! GitHub Pages 반영 후(1~5분) 월드에서 공지 보드를 누르거나 재입장하면 보입니다.", "ok");
+  } catch (e) { status("저장 실패: " + e.message, "err"); }
+  $("save").disabled = false;
+}
+
+// ---- wall art ----
+function renderWalls() {
+  $("walls").innerHTML = "";
+  for (const [id, where] of SLOTS) {
+    const div = document.createElement("div");
+    div.className = "wall";
+    div.innerHTML = `<img src="${PAGES}wall/wall_${id}.png?t=${Date.now()}" alt=""><b>${id.toUpperCase()}</b><small>${where}</small><input type="file" accept="image/*">`;
+    div.querySelector("input").onchange = e => uploadWall(id, e.target.files[0], div.querySelector("img"));
+    $("walls").appendChild(div);
+  }
+}
+
+async function uploadWall(id, file, preview) {
+  if (!file) return;
+  if (!token()) return status("먼저 토큰을 입력하고 연결하세요.", "err");
+  status(`${id.toUpperCase()} 이미지 처리 중…`);
+  try {
+    const img = await createImageBitmap(file);
+    // cover-crop to 2:3 at 1024x1536
+    const W = 1024, H = 1536, canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    const scale = Math.max(W / img.width, H / img.height);
+    const w = img.width * scale, h = img.height * scale;
+    canvas.getContext("2d").drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+    const dataUrl = canvas.toDataURL("image/png");
+    preview.src = dataUrl;
+    await put(`wall/wall_${id}.png`, dataUrl.split(",")[1], `Update wall art ${id} from admin page`);
+    status(`${id.toUpperCase()} 업로드 완료! 1~5분 뒤 월드의 ART 버튼으로 반영됩니다.`, "ok");
+  } catch (e) { status("업로드 실패: " + e.message, "err"); }
+}
+
+$("connect").onclick = load;
+$("save").onclick = save;
+$("addRow").onclick = () => addRow();
+$("forget").onclick = () => { localStorage.removeItem("studioAdminToken"); $("token").value = ""; status("토큰을 지웠습니다."); };
+try { const t = localStorage.getItem("studioAdminToken"); if (t) { $("token").value = t; load(); } } catch {}
+renderWalls();
+</script>
+</body>
+</html>

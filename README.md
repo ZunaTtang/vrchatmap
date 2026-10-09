@@ -49,10 +49,27 @@ https://zunattang.github.io/vrchatmap/wall/wall_<슬롯>.png
 `Assets/VTuberStudio/Art/Wall/` 폴더에 **같은 파일 이름**(`wall_e1.png` …)으로 넣으면 다음 빌드 때 반영됩니다.
 이 저장소의 `wall/` 폴더를 그대로 복사해 넣으면 웹과 기본 이미지가 같아집니다. (재업로드 필요)
 
+## 관리자 페이지 (공지 · 일정 · TV · 벽 이미지)
+
+**https://zunattang.github.io/vrchatmap/admin/**
+
+- 처음 한 번: [Fine-grained 토큰](https://github.com/settings/personal-access-tokens/new) 생성 → Repository access: **vrchatmap만**, Permissions: **Contents: Read and write** → 관리자 페이지에 붙여넣고 "연결".
+  토큰은 그 브라우저에만 저장됩니다.
+- **공지 / 방송 일정 / TV 채널**을 고치고 "저장" → `config/studio.json` 이 갱신되고, 월드는 입장 시와 5분마다 다시 읽습니다 (NOTICE 보드를 누르면 즉시).
+- **벽 이미지**: 슬롯별로 이미지를 고르면 1024×1536으로 자동 크롭되어 업로드됩니다.
+
+### config/studio.json 형식
+```json
+{ "notice": "공지 문구", "schedule": [ { "day": "월", "time": "21:00", "title": "잡담" } ], "tv": 0 }
+```
+`tv`는 월드에 고정된 채널 번호입니다 (0: 라이브, 1: 최근 영상).
+
 ## 기타 파일
 
 - [`brand/`](brand/) — 로고 엠블럼, SD 캐릭터 일러스트 원본 (월드에 쓰인 것과 동일)
 - [`index.html`](index.html) — GitHub Pages 미리보기 페이지
+- [`admin/`](admin/) — 관리자 페이지
+- [`config/studio.json`](config/studio.json) — 월드가 읽는 설정
 
 ## 처음 한 번만: GitHub Pages 켜기
 
