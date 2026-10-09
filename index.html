@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Wall Art</title>
+<style>
+  :root { --bg: #1A1A1D; --fg: #EDEAE4; --gold: #C9A24B; --pink: #F4C6CF; }
+  body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 22px; color: var(--gold); }
+  p { margin: 0 0 20px; opacity: .8; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+  figure { margin: 0; background: #000; border: 2px solid var(--gold); padding: 6px; }
+  img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; display: block; }
+  figcaption { font-size: 13px; padding-top: 6px; color: var(--pink); }
+</style>
+</head>
+<body>
+<h1>Studio Wall Art</h1>
+<p>VRChat 스튜디오 월드가 불러오는 현재 벽면 이미지입니다. 교체 방법은 저장소 README를 참고하세요.</p>
+<div class="grid">
+  <figure><img src="wall/wall_e1.png" alt="E1"><figcaption>E1 · 동쪽 벽 무대 쪽</figcaption></figure>
+  <figure><img src="wall/wall_e2.png" alt="E2"><figcaption>E2 · 동쪽 벽 메인</figcaption></figure>
+  <figure><img src="wall/wall_e3.png" alt="E3"><figcaption>E3 · 동쪽 벽 입구 쪽</figcaption></figure>
+  <figure><img src="wall/wall_w1.png" alt="W1"><figcaption>W1 · 서쪽 벽 채팅 보드 옆</figcaption></figure>
+  <figure><img src="wall/wall_w2.png" alt="W2"><figcaption>W2 · 서쪽 벽 구석</figcaption></figure>
+</div>
+<script>
+  // bust the browser cache so a freshly uploaded image shows up right away
+  document.querySelectorAll('img').forEach(i => i.src += '?t=' + Date.now());
+</script>
+</body>
+</html>
