@@ -114,7 +114,9 @@ function status(msg, kind = "") { const s = $("status"); s.textContent = msg; s.
 function token() { return $("token").value.trim(); }
 
 async function gh(path, opts = {}) {
+  // no-store: a cached GET would return an outdated sha and the next save fails with 409
   const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+    cache: "no-store",
     ...opts,
     headers: { "Authorization": `Bearer ${token()}`, "Accept": "application/vnd.github+json", ...(opts.headers || {}) },
   });
@@ -124,12 +126,16 @@ async function gh(path, opts = {}) {
 const b64encodeText = text => btoa(String.fromCharCode(...new TextEncoder().encode(text)));
 const b64decodeText = b64 => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, "")), c => c.charCodeAt(0)));
 
-async function sha(path) { try { return (await gh(`${path}?ref=${BRANCH}`)).sha; } catch { return null; } }
+async function sha(path) { try { return (await gh(`${path}?ref=${BRANCH}&t=${Date.now()}`)).sha; } catch { return null; } }
 async function put(path, base64, message) {
-  const body = { message, content: base64, branch: BRANCH };
-  const existing = await sha(path);
-  if (existing) body.sha = existing;
-  return gh(path, { method: "PUT", body: JSON.stringify(body) });
+  // retry once with a fresh sha if the file changed in between (409 conflict)
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const body = { message, content: base64, branch: BRANCH };
+    const existing = await sha(path);
+    if (existing) body.sha = existing;
+    try { return await gh(path, { method: "PUT", body: JSON.stringify(body) }); }
+    catch (e) { if (attempt === 1 || !String(e.message).startsWith("409")) throw e; }
+  }
 }
 
 // ---- schedule rows ----
