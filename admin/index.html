@@ -79,12 +79,11 @@
 
   <section>
     <h2>4. 방송 없을 때 TV</h2>
-    <p class="hint">OBS World Feed가 꺼져 있을 때 메인 스크린에서 재생할 채널. 채널 목록은 월드에 고정되어 있어요
-      (바꾸려면 Unity <code>StudioBuilder.Props.cs</code>의 <code>TvChannelUrls</code> 수정 후 재업로드).
-      콘솔에서 인스턴스 주인이 직접 YouTube 주소를 붙여넣을 수도 있습니다.</p>
+    <p class="hint">TV는 처음엔 꺼져 있고, 월드 메뉴의 TV 탭에서 켜거나 YouTube 주소를 붙여넣으면 재생돼요.
+      켰을 때 재생할 채널은 월드에 고정되어 있어요 (바꾸려면 Unity <code>StudioBuilder.Props.cs</code>의
+      <code>TvChannelUrls</code> 수정 후 재업로드).</p>
     <select id="tv">
-      <option value="0">0 · MadoromeZuna 라이브 (방송 중이 아니면 다음 채널로 넘어감)</option>
-      <option value="1">1 · MadoromeZuna 최근 영상</option>
+      <option value="0">0 · MadoromeZuna 라이브 (방송 중일 때만 재생)</option>
     </select>
   </section>
 
@@ -92,7 +91,7 @@
 
   <section>
     <h2>5. 벽 이미지</h2>
-    <p class="hint">이미지를 고르면 2:3 비율(1024×1536 PNG)로 자동 크롭되어 바로 업로드됩니다. 월드에서는 콘솔의 분홍 ART 버튼 또는 재입장 시 반영
+    <p class="hint">이미지를 고르면 2:3 비율(1024×1536 PNG)로 자동 크롭되어 바로 업로드됩니다. 월드에서는 월드 메뉴 → 방 탭의 '벽 그림 새로고침' 또는 재입장 시 반영
       (GitHub Pages 반영까지 1~5분).</p>
     <div class="walls" id="walls"></div>
   </section>
@@ -209,7 +208,7 @@ async function uploadWall(id, file, preview) {
     const dataUrl = canvas.toDataURL("image/png");
     preview.src = dataUrl;
     await put(`wall/wall_${id}.png`, dataUrl.split(",")[1], `Update wall art ${id} from admin page`);
-    status(`${id.toUpperCase()} 업로드 완료! 1~5분 뒤 월드의 ART 버튼으로 반영됩니다.`, "ok");
+    status(`${id.toUpperCase()} 업로드 완료! 1~5분 뒤 월드 메뉴의 '벽 그림 새로고침'으로 반영됩니다.`, "ok");
   } catch (e) { status("업로드 실패: " + e.message, "err"); }
 }
 
